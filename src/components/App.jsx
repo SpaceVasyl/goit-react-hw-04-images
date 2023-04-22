@@ -1,7 +1,7 @@
 
 import { ImageGallery } from './ImageGallery/ImageGallery';
 import { Component } from 'react';
-import Searchbar from './Searchbar/Searchbar';
+import {Searchbar} from './Searchbar/Searchbar';
 import { getPhotos } from '../fetch/getPhotos';
 import { Button } from './Button/Button';
 import { Modal } from './Modal/Modal';
