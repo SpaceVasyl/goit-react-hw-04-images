@@ -1,88 +1,85 @@
-
+import { useState, useEffect } from "react";
 import { ImageGallery } from './ImageGallery/ImageGallery';
-import { Component } from 'react';
 import {Searchbar} from './Searchbar/Searchbar';
 import { getPhotos } from '../fetch/getPhotos';
 import { Button } from './Button/Button';
 import { Modal } from './Modal/Modal';
 import {Loader} from './Loader/Loader';
+export const App = () => {
+  const [inputValue, setInputValue] = useState('');
+  const [photos, setPhotos] = useState([]);
+  const [page, setPage] = useState(1);
+  const [isModalShown, setIsModalShown] = useState(false);
+  const [modalPhotoURL, setModalPhotoURL] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [fetchArrayLength, setFetchArrayLength] = useState(0);
 
-
-export class App extends Component {
-  state = {
-    inputValue: '',
-    photos: [],
-    page: 1,
-    isModalShown: false,
-    modalPhotoURL: '',
-    isLoading: false,
-    fetchArrayLength: 0
+  const handleSearch = (inputValue) => {
+    setInputValue(inputValue);
+    loadImages();
   };
 
-  handleSearch = (inputValue) => {
-    this.setState({ inputValue : `${inputValue}` })
-  };
-componentDidUpdate(_, prevState){
-  if (this.state.inputValue !== prevState.inputValue){
-    this.smallFunction()
-}}
-smallFunction = () => {
-  this.setState({isLoading: true, page: 1});
-  getPhotos(this.state.inputValue, this.state.page)
+useEffect(() => {
+  document.addEventListener("keydown", handleKeyDown)
+},[])
+const loadImages = () => {
+  console.log(inputValue);
+  if (inputValue === '' && page === 1) {
+    return;
+  }
+  setIsLoading(true)
+  getPhotos(inputValue, page)
   .then((response) => response.json())
   .then((data) => {
-    this.setState({photos:data.hits, fetchArrayLength: data.hits.length})
+    setFetchArrayLength(data.hits.length)
+    setPhotos(prevState=>[...prevState, ...data.hits])
     return data;
   })
   .catch((error) => {
     console.log(error);
   })
-  .finally(()=>this.setState({ isLoading: false }))
-}
-handleLoadMore = (evt) => {
-  evt.preventDefault();
-  this.setState(prevState => ({ page: prevState.page + 1 , isLoading: true}), () => {
-    getPhotos(this.state.inputValue, this.state.page)
+  .finally(()=> setIsLoading(false))
+  }
+
+
+  const handleLoadMore = () => {
+    setPage(page + 1)
+    const nextPage = page + 1;
+    setIsLoading(true);
+    
+    getPhotos(inputValue, nextPage)
       .then((response) => response.json())
       .then((data) => {
-        this.setState({photos : [...this.state.photos , ...data.hits]})
-        this.setState({isLoading: false, fetchArrayLength: data.hits.length})
+        setFetchArrayLength(data.hits.length);
+        setPhotos((prevState) => [...prevState, ...data.hits]);
         return data;
       })
       .catch((error) => {
         console.log(error);
-        this.setState({ isLoading: false });
       })
-  });
-}
-imageModal = (item) => {
-this.setState({isModalShown:true, modalPhotoURL: item});
-}
-closeModal = () => {
-  this.setState({ isModalShown: false });
-};
-componentDidMount() {
-  document.addEventListener("keydown", this.handleKeyDown);
-}
+      .finally(() => setIsLoading(false));
+  };
 
-componentWillUnmount() {
-  document.removeEventListener("keydown", this.handleKeyDown);
+const imageModal = (item) => {
+  setIsModalShown(true);
+  setModalPhotoURL(item);
 }
-
-handleKeyDown = (evt) => {
+const closeModal = () => {
+  setIsModalShown(false)
+}
+const handleKeyDown = (evt) => {
   if (evt.key === "Escape") {
-    this.setState({ isModalShown: false });
+    setIsModalShown(false)
   }
-};
-  render() {console.log(this.state.fetchArrayLength);
-    return (
-      <div>
-        <Searchbar onSubmit={this.handleSearch} />
-        <ImageGallery image={this.state.photos} imageModal={this.imageModal} />
-        {this.state.isLoading && <Loader/> }
-        {this.state.photos.length > 0 && this.state.fetchArrayLength === 12  && <Button handleLoadMore={this.handleLoadMore} state={this.state.page} />}
-        {this.state.isModalShown === true ? <Modal modalPhotoURL={this.state.modalPhotoURL} onClose={this.closeModal}/> : null}
-      </div>
-    );
-  }
+}
+
+  return (
+    <div>
+      <Searchbar onSubmit={handleSearch} />
+      <ImageGallery image={photos} imageModal={imageModal} />
+      {isLoading && <Loader/> }
+      {photos.length > 0 && fetchArrayLength === 12  && <Button func={handleLoadMore} />}
+      {isModalShown === true ? <Modal modalPhotoURL={modalPhotoURL} onClose={closeModal}/> : null}
+    </div>
+  );
 }
