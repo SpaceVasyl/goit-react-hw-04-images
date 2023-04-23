@@ -20,8 +20,6 @@ export const App = () => {
 
 useEffect(() => {
   document.addEventListener("keydown", handleKeyDown);
-  
-    console.log(inputValue);
     if (inputValue === '' && page === 1) {
       return;
     }
