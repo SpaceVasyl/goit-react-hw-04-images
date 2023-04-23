@@ -16,30 +16,33 @@ export const App = () => {
 
   const handleSearch = (inputValue) => {
     setInputValue(inputValue);
-    loadImages();
   };
 
 useEffect(() => {
-  document.addEventListener("keydown", handleKeyDown)
-},[])
-const loadImages = () => {
-  console.log(inputValue);
-  if (inputValue === '' && page === 1) {
-    return;
-  }
-  setIsLoading(true)
-  getPhotos(inputValue, page)
-  .then((response) => response.json())
-  .then((data) => {
-    setFetchArrayLength(data.hits.length)
-    setPhotos(prevState=>[...prevState, ...data.hits])
-    return data;
-  })
-  .catch((error) => {
-    console.log(error);
-  })
-  .finally(()=> setIsLoading(false))
-  }
+  document.addEventListener("keydown", handleKeyDown);
+  
+    console.log(inputValue);
+    if (inputValue === '' && page === 1) {
+      return;
+    }
+    if (page > 1){
+      return
+    }
+    setIsLoading(true)
+    getPhotos(inputValue, page)
+    .then((response) => response.json())
+    .then((data) => {
+      setFetchArrayLength(data.hits.length)
+      setPhotos(prevState=>[...prevState, ...data.hits])
+      return data;
+    })
+    .catch((error) => {
+      console.log(error);
+    })
+    .finally(()=> setIsLoading(false))
+    
+},[inputValue, page])
+
 
 
   const handleLoadMore = () => {
